@@ -1,0 +1,31 @@
+{
+  "name": "tournament-brackets",
+  "version": "0.0.0",
+  "description": "Tournament bracket display",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "tournament",
+    "bracket",
+    "angular"
+  ],
+  "authors": [
+    "clemby <clemby@users.noreply.github.com>"
+  ],
+  "license": "GNU GPLv3+",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.3.2",
+    "jquery-bracket": "https://github.com/teijo/jquery-bracket.git"
+  },
+  "devDependencies": {
+    "DefinitelyTyped": "*"
+  }
+}
