@@ -6,6 +6,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-tslint');
 
   var pkg = grunt.file.readJSON('package.json');
+  console.log('pkg.name', pkg.name);
 
   grunt.initConfig({
     pkg: pkg,
@@ -86,8 +87,8 @@ module.exports = function(grunt) {
         wrap: true
       },
       dist: {
-        src: '<%= dom_munger.data.uglify %>',
-        dest: 'dist/js/lib.min.js'
+        src: 'dist/<%= pkg.name %>.js',
+        dest: 'dist/<%= pkg.name %>.min.js'
       }
     },
 
@@ -123,8 +124,8 @@ module.exports = function(grunt) {
   grunt.registerTask('tests', ['ts:tests']);
   grunt.registerTask('test', ['karma:lib']);
   grunt.registerTask('dist', [
+    'default',
     'uglify:dist',
-    'cssmin:dist',
   ]);
   grunt.registerTask('all', ['ts', 'dist']);
 };
