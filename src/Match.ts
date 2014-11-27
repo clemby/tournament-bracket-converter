@@ -54,13 +54,17 @@ module lib {
       var obj: MatchObject = this.get(),
           winnerId: number = obj.winner;
 
-      if (typeof winnerId !== 'number') {
+      function toNull(x) {
         return null;
+      }
+
+      if (typeof winnerId !== 'number') {
+        return $.map(obj.teams, toNull);
       }
 
       var index: number = $.inArray(winnerId, obj.teams);
       if (index < 0) {
-        return null;
+        return $.map(obj.teams, toNull);
       }
 
       return $.map(obj.teams, (teamObj: TeamObject) => {

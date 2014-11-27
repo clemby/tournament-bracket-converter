@@ -108,24 +108,6 @@ module lib {
   }
 
 
-  export function getResult(match: Match): number[] {
-    var winner = match.winner();
-
-    if (typeof winner !== 'number') {
-      return null;
-    }
-
-    switch ($.inArray(winner, match.teams())) {
-      case 0:
-        return [1, 0];
-      case 1:
-        return [0, 1];
-      default:
-        throw Error("Can't find match winner among participants!");
-    }
-  }
-
-
   export function getFirstRound(): Match[] {
     return $.map(Match.items, (matchObj: MatchObject): Match => {
       var match = new Match(matchObj);
@@ -233,14 +215,27 @@ module lib {
       return bracket.map(roundResults);
     }
 
+
+    var wbResults: number[][][] = bracketResults(wbTree),
+        lbResults: number[][][] = bracketResults(lbTree);
+
     var results: number[][][][] = [
-      bracketResults(wbTree),
-      bracketResults(lbTree),
+      wbResults,
+      lbResults,
       [[finalMatch.result()]]
     ];
 
     var teams: string[][] = wbTree[0].map((match: Match): string[] => {
       return match.teamNames();
+    });
+
+    $.extend(window, {
+      teams: teams,
+      results: results,
+      wbTree: wbTree,
+      lbTree: lbTree,
+      wbResults: wbResults,
+      lbResults: lbResults
     });
 
     return {
