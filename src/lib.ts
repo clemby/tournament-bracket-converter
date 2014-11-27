@@ -61,8 +61,8 @@ module lib {
 
     while (currentTier.length) {
       tiers.push(currentTier);
-      // Cast to any[] because $.map flattens arrays, but this doesn't appear
-      // to be understood.
+      // Cast to any[] because we make use of $.map's array flattening, which
+      // doesn't appear to be recognised.
       currentTier = <any[]> $.map(currentTier, getMatchChildren);
     }
 
@@ -119,89 +119,97 @@ module lib {
   }
 
 
-  export function formatApiResponse(data) {
-    var matches = {},
-        loserNextCount = 0;
+  export interface TournamentOptions {
+    hasSecondaryFinal: boolean;
+    hasConsolationRound: boolean;
+  }
 
+
+  export function getTournamentOptions(finalMatch?: Match): TournamentOptions {
+    if (!finalMatch) {
+      finalMatch = getFinal();
+    }
+
+    var preFinals: Match[] = finalMatch.winnerPrev(),
+        childCount: number = preFinals.length,
+        hasSecondaryFinal: boolean = false,
+        hasConsolationRound: boolean = false;
+
+    switch (childCount) {
+      case 2:
+        break;
+
+      case 1:
+        hasSecondaryFinal = true;
+        preFinals = preFinals[0].winnerPrev();
+        if (preFinals.length !== 2) {
+          throw Error(
+            "Expected 2 rounds to precede first final; got " + preFinals.length
+          );
+        }
+        break;
+
+      default:
+        throw Error(
+          childCount + " matches directly precede final; expected 1"
+        );
+    }
+
+    $.each(preFinals, (i: number, match: Match): void => {
+      if (match.loserNext()) {
+        hasConsolationRound = true;
+      }
+    });
+
+    return {
+      hasSecondaryFinal: hasSecondaryFinal,
+      hasConsolationRound: hasConsolationRound
+    };
+  }
+
+
+  export function formatApiResponse(data): JQueryBracketData {
     $.each(data.teams, (i: number, teamObj: TeamObject): void => {
       Team.items[teamObj.id] = teamObj;
     });
 
     $.each(data.matches, (i: number, matchObj: MatchObject): void => {
       Match.items[matchObj.id] = matchObj;
-
-      if (typeof matchObj.loserNext === 'number') {
-        ++loserNextCount;
-      }
     });
 
-
-    var doubleElimination = false,
-        consolationRound = false;
-
-    // TODO: This assumes only two teams per match (fine for jquery.bracket).
-    if (loserNextCount === 2) {
-      consolationRound = true;
-    }
-    if (loserNextCount > 2) {
-      doubleElimination = true;
-    }
-
-
-    var finalMatch: Match = getFinal();
-
-    if (doubleElimination) {
-      return doubleEliminationTournament({
-        matches: matches,
-        teams: Team.items,
-        finalMatch: finalMatch
-      });
-    }
-
-    throw Error("Not implemented!");
-  }
-
-
-  export function doubleEliminationTournament(o: {
-    finalMatch: Match;
-  })
-    : JQueryBracketData
-  {
-    var finalMatch = o.finalMatch,
-        preFinals = finalMatch.winnerPrev(),
-        hasSecondaryFinal = false,
-        bracketHeads;
-
-    switch (preFinals.length) {
-      case 1:
-        hasSecondaryFinal = true;
-        bracketHeads = preFinals[0].winnerPrev();
-        break;
-      case 2:
-        hasSecondaryFinal = false;
-        bracketHeads = preFinals;
-        break;
-      default:
-        throw Error(
-          preFinals.length + " matches directly precede final; expected 1"
-        );
-    }
+    var finalMatch: Match = getFinal(),
+        tournOpts = getTournamentOptions();
 
     // wb: winning bracket; lb: losing bracket.
-    var wbFirstRound: Match[] = getFirstRound();
-    var wbTree: Match[][] = buildTreeFromBase(wbFirstRound);
-    var lbFirstRound: Match[] = $.map(wbFirstRound, (match: Match): Match =>
+    var wbFirstRound: Match[] = getFirstRound(),
+        wbTree: Match[][] = buildTreeFromBase(wbFirstRound),
+        lbFirstRound: Match[] = $.map(wbFirstRound, (match: Match): Match =>
           match.loserNext()
-        );
-    var lbTree: Match[][] = buildTreeFromBase(lbFirstRound);
+        ),
+        lbTree: Match[][],
+        isDoubleElimination: boolean = !!lbFirstRound.length;
 
-    if (lbTree.pop()[0].id !== finalMatch.id) {
-      // This layout won't work with jquery.bracket.
-      throw Error("Couldn't reach final from losing bracket");
-    }
-    if (wbTree.pop()[0].id !== finalMatch.id) {
+    // Sanity check.
+    if (wbTree[wbTree.length - 1][0].id !== finalMatch.id) {
       throw Error("Couldn't reach final from winning bracket");
     }
+
+    if (isDoubleElimination) {
+      lbTree = buildTreeFromBase(lbFirstRound);
+
+      // Ensure the final can be reached from the loser bracket too (otherwise
+      // it won't work with jquery.bracket). Remove it so it doesn't appear in
+      // the results twice.
+      var loserBracketFinals: Match[] = lbTree.pop();
+      if (loserBracketFinals.length !== 1) {
+        throw Error("No final for loser bracket");
+      }
+
+      if (loserBracketFinals[0].id !== finalMatch.id) {
+        throw Error("Couldn't reach final from losing bracket");
+      }
+    }
+
 
     function matchResult(match: Match): number[] {
       return match.result();
@@ -216,31 +224,41 @@ module lib {
     }
 
 
-    var wbResults: number[][][] = bracketResults(wbTree),
-        lbResults: number[][][] = bracketResults(lbTree);
+    var results: number[][][][];
+    if (isDoubleElimination) {
+      // Pop the final from the winner bracket tree; jquery.bracket requires it
+      // to be added in a separate bracket for double elimination.
+      wbTree.pop();
 
-    var results: number[][][][] = [
-      wbResults,
-      lbResults,
-      [[finalMatch.result()]]
-    ];
+      results = [
+        bracketResults(wbTree),
+        bracketResults(lbTree),
+        [[finalMatch.result()]]
+      ];
+    }
+    else {
+      results = [bracketResults(wbTree)];
+    }
 
     var teams: string[][] = wbTree[0].map((match: Match): string[] => {
       return match.teamNames();
     });
 
     $.extend(window, {
+      options: tournOpts,
       teams: teams,
       results: results,
       wbTree: wbTree,
-      lbTree: lbTree,
-      wbResults: wbResults,
-      lbResults: lbResults
+      lbTree: lbTree
     });
 
     return {
-      teams: teams,
-      results: results
+      init: {
+        teams: teams,
+        results: results
+      },
+      skipSecondaryFinal: isDoubleElimination && !tournOpts.hasSecondaryFinal,
+      skipConsolationRound: !tournOpts.hasConsolationRound
     };
   }
 }

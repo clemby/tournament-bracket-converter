@@ -1,13 +1,16 @@
-interface JQueryBracketData {
+interface JQueryBracketInitData {
   teams: string[][];
   results: number[][][][];
 }
 
 
+interface JQueryBracketData {
+  init: JQueryBracketInitData;
+  skipConsolationRound?: boolean;
+  skipSecondaryFinal?: boolean;
+}
+
+
 interface JQuery {
-  bracket(data: {
-    init: JQueryBracketData;
-    skipConsolationRound?: boolean;
-    skipSecondaryFinal?: boolean;
-  }): JQuery;
+  bracket(data: JQueryBracketData): JQuery;
 }
