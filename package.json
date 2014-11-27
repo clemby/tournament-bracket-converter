@@ -1,7 +1,7 @@
 {
-  "name": "tournament-brackets",
+  "name": "tournament-bracket-converter",
   "version": "0.0.0",
-  "description": "Small front-end app for showing tournament brackets",
+  "description": "Converts a tournament tree into something readable by jquery-bracket",
   "main": " ",
   "dependencies": {
     "grunt": "^0.4.5",
