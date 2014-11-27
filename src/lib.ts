@@ -169,13 +169,8 @@ module lib {
 
 
   export function formatTournamentData(data: ApiData): JQueryBracketData {
-    $.each(data.teams, (i: number, teamObj: TeamObject): void => {
-      Team.items[teamObj.id] = teamObj;
-    });
-
-    $.each(data.matches, (i: number, matchObj: MatchObject): void => {
-      Match.items[matchObj.id] = matchObj;
-    });
+    Team.loadItems(data.teams);
+    Match.loadItems(data.matches);
 
     var finalMatch: Match = getFinal(),
         tournOpts = getTournamentOptions();

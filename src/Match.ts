@@ -61,16 +61,16 @@ module lib {
       }
 
       if (typeof winnerId !== 'number') {
-        return $.map(obj.teams, toNull);
+        return obj.teams.map(toNull);
       }
 
       var index: number = $.inArray(winnerId, obj.teams);
       if (index < 0) {
-        return $.map(obj.teams, toNull);
+        throw Error("Winner " + winnerId + " not found in team list");
       }
 
-      return $.map(obj.teams, (teamObj: TeamObject) => {
-        return teamObj.id === winnerId ? 1 : 0;
+      return obj.teams.map((teamId: number) => {
+        return teamId === winnerId ? 1 : 0;
       });
     }
 

@@ -6,7 +6,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-tslint');
 
   var pkg = grunt.file.readJSON('package.json');
-  console.log('pkg.name', pkg.name);
 
   grunt.initConfig({
     pkg: pkg,
@@ -29,11 +28,11 @@ module.exports = function(grunt) {
 
       tests: {
         src: [
-          'refs/tests.d.ts',
+          'refs/test.d.ts',
           'test/*.ts',
           'test/**/*.ts'
         ],
-        out: 'build/tests.js',
+        out: 'dist/tests.js',
         options: {
           declaration: false
         }
@@ -48,7 +47,7 @@ module.exports = function(grunt) {
         browsers: ['PhantomJS'],
         reporters: ['progress', 'coverage'],
         preprocessors: {
-          'build/lib.js': 'coverage',
+          'dist/<%= pkg.name %>.js': 'coverage',
         },
         coverageReporter: {
           type: 'text',
@@ -56,8 +55,9 @@ module.exports = function(grunt) {
         },
         files: [
           'bower_components/jquery/dist/jquery.js',
-          'bower_components/jquery-bracket/dist/jquery.bracket.js',
-          'build/tests.js'
+          'bower_components/jquery-bracket/dist/jquery.bracket.min.js',
+          'dist/<%= pkg.name %>.js',
+          'dist/tests.js'
         ]
       },
       lib: {
@@ -84,7 +84,7 @@ module.exports = function(grunt) {
       options: {
         mangle: true,
         compress: true,
-        wrap: true
+        wrap: false
       },
       dist: {
         src: 'dist/<%= pkg.name %>.js',
