@@ -168,7 +168,7 @@ module lib {
   }
 
 
-  export function formatApiResponse(data): JQueryBracketData {
+  export function formatTournamentData(data: ApiData): JQueryBracketData {
     $.each(data.teams, (i: number, teamObj: TeamObject): void => {
       Team.items[teamObj.id] = teamObj;
     });
@@ -242,14 +242,6 @@ module lib {
 
     var teams: string[][] = wbTree[0].map((match: Match): string[] => {
       return match.teamNames();
-    });
-
-    $.extend(window, {
-      options: tournOpts,
-      teams: teams,
-      results: results,
-      wbTree: wbTree,
-      lbTree: lbTree
     });
 
     return {
