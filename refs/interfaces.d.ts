@@ -5,30 +5,28 @@ declare module lib {
   }
 
 
-  export interface Team {
+  export interface MatchObject {
     id: number;
     name: string;
-  }
+    teams: number[];
 
-
-  export interface Match {
-    id: number;
-    name: string;
+    winner?: number;
 
     winnerNext?: number;
     loserNext?: number;
-    elemId?: string;
+  }
+
+
+  export interface TeamObject {
+    id: number;
+    name: string;
+
+    members?: string[];
   }
 
 
   export interface ApiData {
-    teams: Team[];
-    matches: Match[];
+    teams: TeamObject[];
+    matches: MatchObject[];
   }
-
-
-  export interface FormattedData {
-    matches: {[id: number]: Match;};
-  }
-
 }
