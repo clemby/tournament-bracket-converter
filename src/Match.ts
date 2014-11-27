@@ -1,6 +1,8 @@
 module lib {
   export class Match extends lib.CollectionItem<MatchObject> {
-    static items: {[id: number]: MatchObject;} = {};
+    static items: Dict<MatchObject> = {};
+
+    allItems: Dict<MatchObject>;
 
     constructor(obj: MatchObject);
     constructor(match: Match);
@@ -37,7 +39,7 @@ module lib {
     }
 
     prev(relation: string): Match[] {
-      return $.map(this.items, (matchObj: MatchObject): Match => {
+      return $.map(this.allItems, (matchObj: MatchObject): Match => {
         return matchObj[relation] === this.id ? new Match(matchObj.id) : null;
       });
     }
@@ -73,7 +75,7 @@ module lib {
     }
 
   }
-  Match.prototype.items = Match.items;
+  Match.prototype.allItems = Match.items;
 
 }
 

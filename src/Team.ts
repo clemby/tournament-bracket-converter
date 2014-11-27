@@ -1,6 +1,8 @@
 module lib {
   export class Team extends lib.CollectionItem<TeamObject> {
-    static items: {[id: number]: TeamObject;} = {};
+    static items: Dict<TeamObject> = {};
+
+    allItems: Dict<TeamObject>;
   }
-  Team.prototype.items = Team.items;
+  Team.prototype.allItems = Team.items;
 }

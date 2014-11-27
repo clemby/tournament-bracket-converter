@@ -3,7 +3,7 @@
     "class-name": true,
     "curly": true,
     "eofline": true,
-    "forin": true,
+    "forin": false,
     "indent": [true, "spaces"],
     "label-position": true,
     "label-undefined": true,
@@ -31,13 +31,13 @@
     "no-unused-variable": false,
     "no-unreachable": true,
     "no-use-before-declare": true,
-    "one-line": [true,
+    "one-line": [false,
         "check-open-brace",
         "check-catch",
         "check-else",
         "check-whitespace"
     ],
-    "quotemark": [true, "double"],
+    "quotemark": false,
     "radix": true,
     "semicolon": true,
     "triple-equals": [true, "allow-null-check"],
@@ -46,7 +46,6 @@
         "check-branch",
         "check-decl",
         "check-operator",
-        "check-separator",
         "check-type"
     ]
   }
