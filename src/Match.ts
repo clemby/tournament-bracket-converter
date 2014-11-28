@@ -7,8 +7,9 @@ module lib {
     constructor(obj: MatchObject);
     constructor(match: Match);
     constructor(id: number);
+    constructor(id: string);
     constructor(arg: any) {
-      super(typeof arg === 'number' ? arg : arg.id);
+      super(typeof arg === 'number' || typeof arg === 'string' ? +arg : arg.id);
     }
 
     name(): string {
@@ -16,11 +17,11 @@ module lib {
     }
 
     winnerNext(): Match {
-      return this.propOrNull('winnerNext');
+      return this.propOrNull('winner_next');
     }
 
     loserNext(): Match {
-      return this.propOrNull('loserNext');
+      return this.propOrNull('loser_next');
     }
 
     teams(): Team[] {
@@ -45,11 +46,11 @@ module lib {
     }
 
     winnerPrev(): Match[] {
-      return this.prev('winnerNext');
+      return this.prev('winner_next');
     }
 
     loserPrev(): Match[] {
-      return this.prev('loserNext');
+      return this.prev('loser_next');
     }
 
     result(): number[] {

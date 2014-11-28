@@ -132,6 +132,28 @@ describe("Match", () => {
     lib.Match.loadItems(items);
   });
 
+  describe("constructor", () => {
+    var match: lib.Match;
+
+    it("takes the object's id if given an object", () => {
+      match = new lib.Match(<lib.MatchObject> {id: 7});
+      expect(match.id).toBe(7);
+    });
+    it("takes the match's id if given a Match", () => {
+      var other = new lib.Match(7);
+      match = new lib.Match(other);
+      expect(match.id).toBe(other.id);
+    });
+    it("takes the argument as id if given a number", () => {
+      match = new lib.Match(7);
+      expect(match.id).toBe(7);
+    });
+    it("takes the argument as numerical id if given a string", () => {
+      match = new lib.Match("7");
+      expect(match.id).toBe(7);
+    });
+  });
+
   describe("get method", () => {
     it("returns the underlying object", () => {
       var match = new lib.Match(16);

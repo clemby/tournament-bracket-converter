@@ -12,8 +12,8 @@ declare module lib {
 
     winner?: number;
 
-    winnerNext?: number;
-    loserNext?: number;
+    winner_next?: number;
+    loser_next?: number;
   }
 
 
