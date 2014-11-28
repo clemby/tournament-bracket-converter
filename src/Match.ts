@@ -29,10 +29,7 @@ module lib {
     }
 
     teamNames(): string[] {
-      return $.map(
-        this.get().teams,
-        (id: number): string => Team.items[id].name
-      );
+      return this.teams().map((team: Team): string => team.shortName());
     }
 
     winner(): Team {

@@ -11,7 +11,6 @@ declare module lib {
     teams: number[];
 
     winner?: number;
-
     winner_next?: number;
     loser_next?: number;
   }
@@ -21,6 +20,7 @@ declare module lib {
     id: number;
     name: string;
 
+    short_name?: string;
     members?: string[];
   }
 
