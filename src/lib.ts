@@ -1,55 +1,4 @@
 module lib {
-  export function getFinal(): Match {
-    var candidates: Dict<MatchObject> = {},
-        matchId: string,
-        match: MatchObject,
-        matches: Dict<MatchObject> = Match.items;
-
-    for (matchId in matches) {
-      match = matches[matchId];
-
-      // The final must have no subsequent matches.
-      if (typeof match.winnerNext === 'number') {
-        continue;
-      }
-
-      // Consider having loserNext but no winnerNext an error.
-      if (typeof match.loserNext === 'number') {
-        throw Error("Match " + matchId + " has loserNext but no winnerNext");
-      }
-
-      candidates[matchId] = match;
-    }
-
-    // The final can't be reached directly by losing a match.
-    for (matchId in matches) {
-      match = matches[matchId];
-      if (typeof match.loserNext !== 'number') {
-        delete candidates[match.loserNext];
-      }
-    }
-
-    var keys: string[] = Object.keys(candidates);
-    switch (keys.length) {
-      case 1:
-        return new Match(candidates[keys[0]]);
-      case 0:
-        throw Error("No final detected; circular or empty tournament?");
-      default:
-        throw Error("Multiple finals detected: " + keys);
-    }
-  }
-
-
-  export function isEmpty(obj: Dict<any>): boolean {
-    for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
 
   export function buildTreeFromHead(head: Match): Match[][] {
     var currentTier: Match[] = [head],
@@ -125,11 +74,7 @@ module lib {
   }
 
 
-  export function getTournamentOptions(finalMatch?: Match): TournamentOptions {
-    if (!finalMatch) {
-      finalMatch = getFinal();
-    }
-
+  export function getTournamentOptions(finalMatch: Match): TournamentOptions {
     var preFinals: Match[] = finalMatch.winnerPrev(),
         childCount: number = preFinals.length,
         hasSecondaryFinal: boolean = false,
@@ -172,9 +117,6 @@ module lib {
     Team.loadItems(data.teams);
     Match.loadItems(data.matches);
 
-    var finalMatch: Match = getFinal(),
-        tournOpts = getTournamentOptions();
-
     // wb: winning bracket; lb: losing bracket.
     var wbFirstRound: Match[] = getFirstRound(),
         wbTree: Match[][] = buildTreeFromBase(wbFirstRound),
@@ -182,12 +124,15 @@ module lib {
           match.loserNext()
         ),
         lbTree: Match[][],
-        isDoubleElimination: boolean = !!lbFirstRound.length;
+        isDoubleElimination: boolean = !!lbFirstRound.length,
+        finalTier: Match[] = wbTree.pop();
 
-    // Sanity check.
-    if (wbTree[wbTree.length - 1][0].id !== finalMatch.id) {
-      throw Error("Couldn't reach final from winning bracket");
+    if (finalTier.length !== 1) {
+      throw Error("Too many matches in final tier of winning bracket");
     }
+
+    var finalMatch: Match = finalTier[0],
+        tournOpts = getTournamentOptions(finalMatch);
 
     if (isDoubleElimination) {
       lbTree = buildTreeFromBase(lbFirstRound);
