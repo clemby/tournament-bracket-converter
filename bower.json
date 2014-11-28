@@ -1,6 +1,6 @@
 {
   "name": "tournament-bracket-converter",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Converts a tournament tree into something readable by jquery-bracket",
   "moduleType": [
     "globals"
