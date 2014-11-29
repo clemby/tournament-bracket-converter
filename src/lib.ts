@@ -68,17 +68,10 @@ module lib {
   }
 
 
-  export interface TournamentOptions {
-    hasSecondaryFinal: boolean;
-    hasConsolationRound: boolean;
-  }
-
-
-  export function getTournamentOptions(finalMatch: Match): TournamentOptions {
-    var preFinals: Match[] = finalMatch.winnerPrev(),
-        childCount: number = preFinals.length,
-        hasSecondaryFinal: boolean = false,
-        hasConsolationRound: boolean = false;
+  export function checkIfSecondaryFinal(finalMatch: Match): boolean {
+    var hasSecondaryFinal: boolean = false,
+        preFinals: Match[] = finalMatch.winnerPrev(),
+        childCount: number = preFinals.length;
 
     switch (childCount) {
       case 2:
@@ -86,7 +79,6 @@ module lib {
 
       case 1:
         hasSecondaryFinal = true;
-        preFinals = preFinals[0].winnerPrev();
         if (preFinals.length !== 2) {
           throw Error(
             "Expected 2 rounds to precede first final; got " + preFinals.length
@@ -100,16 +92,7 @@ module lib {
         );
     }
 
-    $.each(preFinals, (i: number, match: Match): void => {
-      if (match.loserNext()) {
-        hasConsolationRound = true;
-      }
-    });
-
-    return {
-      hasSecondaryFinal: hasSecondaryFinal,
-      hasConsolationRound: hasConsolationRound
-    };
+    return hasSecondaryFinal;
   }
 
 
@@ -155,7 +138,8 @@ module lib {
     }
 
     var finalMatch: Match = finalTier[0],
-        tournOpts = getTournamentOptions(finalMatch);
+        hasSecondaryFinal: boolean = false,
+        hasConsolationRound: boolean = false;
 
     if (isDoubleElimination) {
       lbTree = buildTreeFromBase(lbFirstRound);
@@ -163,14 +147,28 @@ module lib {
       // Ensure the final can be reached from the loser bracket too (otherwise
       // it won't work with jquery.bracket). Remove it so it doesn't appear in
       // the results twice.
-      var loserBracketFinals: Match[] = lbTree.pop();
-      if (loserBracketFinals.length !== 1) {
+      var loserBracketFinals: Match[] = lbTree.pop(),
+          loserBracketFinalsLength: number = loserBracketFinals.length;
+
+      if (loserBracketFinalsLength !== 1) {
         throw Error("No final for loser bracket");
       }
 
       if (loserBracketFinals[0].id !== finalMatch.id) {
         throw Error("Couldn't reach final from losing bracket");
       }
+
+      if (loserBracketFinals[loserBracketFinalsLength - 1].loserNext()) {
+        hasConsolationRound = true;
+      }
+
+      hasSecondaryFinal = checkIfSecondaryFinal(finalMatch);
+    }
+    else {
+      var preFinals = finalMatch.winnerPrev(),
+          consolationRounds = $.map(preFinals, (m: Match) => m.loserNext());
+
+      hasConsolationRound = !!consolationRounds.length;
     }
 
 
@@ -212,8 +210,8 @@ module lib {
         teams: teams,
         results: results
       },
-      skipSecondaryFinal: isDoubleElimination && !tournOpts.hasSecondaryFinal,
-      skipConsolationRound: !tournOpts.hasConsolationRound
+      skipSecondaryFinal: !hasSecondaryFinal,
+      skipConsolationRound: !hasConsolationRound
     };
   }
 }
