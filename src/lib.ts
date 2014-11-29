@@ -118,14 +118,37 @@ module lib {
     Match.loadItems(data.matches);
 
     // wb: winning bracket; lb: losing bracket.
-    var wbFirstRound: Match[] = getFirstRound(),
-        wbTree: Match[][] = buildTreeFromBase(wbFirstRound),
-        lbFirstRound: Match[] = $.map(wbFirstRound, (match: Match): Match =>
+    var wbFirstRound: Match[] = getFirstRound();
+
+    // If byes are detected, we use a placeholder team. Use a non-number string
+    // for the ID since null and undefined are both admissible as numbers.
+    var byesDetected: boolean = false,
+        nullTeamId: number = <any> 'PLACEHOLDER';
+
+    $.each(wbFirstRound, (i: number, m: lib.Match): void => {
+      var obj: lib.MatchObject = m.get();
+      if (obj.teams.length === 1) {
+        obj.teams.push(nullTeamId);
+      }
+      byesDetected = true;
+    });
+
+    if (byesDetected) {
+      lib.Team.items[nullTeamId] = {
+        id: nullTeamId,
+        name: '--',
+        short_name: '--',
+        members: []
+      };
+    }
+
+    var wbTree: Match[][] = buildTreeFromBase(wbFirstRound);
+    var lbFirstRound: Match[] = $.map(wbFirstRound, (match: Match): Match =>
           match.loserNext()
-        ),
-        lbTree: Match[][],
-        isDoubleElimination: boolean = !!lbFirstRound.length,
-        finalTier: Match[] = wbTree.pop();
+        );
+    var lbTree: Match[][];
+    var isDoubleElimination: boolean = !!lbFirstRound.length;
+    var finalTier: Match[] = wbTree.pop();
 
     if (finalTier.length !== 1) {
       throw Error("Too many matches in final tier of winning bracket");
